@@ -3,6 +3,8 @@ command.sh
 # Ignore all contents in these directories...
 schemacrawler/json/*
 schemacrawler/dbml/*
+schemacrawler/dict/*
 # ...except for the .gitkeep files
 !schemacrawler/json/.gitkeep
 !schemacrawler/dbml/.gitkeep
+!schemacrawler/dict/.gitkeep

@@ -3,8 +3,8 @@ import csv
 import os
 
 # --- Configuration ---
-INPUT_FILENAME = 'schemas.json'
-OUTPUT_FILENAME = 'data_dictionary.csv'
+INPUT_FILENAME = './json/schemas_production.json'
+OUTPUT_FILENAME = './dict/data_dictionary_production.csv'
 # ---------------------
 
 def build_data_type_map(data):
