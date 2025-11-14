@@ -1,3 +1,5 @@
+db-investigator/venv
+db-investigator/.env
 openmetadata-docker/docker-volume/
 command.sh
 # Ignore all contents in these directories...
