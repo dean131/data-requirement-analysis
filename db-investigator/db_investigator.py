@@ -437,3 +437,68 @@ class DBTool:
         if not found_links:
             print("No logical links found. Data may be from isolated tables or a single table.")
 
+    def check_uniqueness(self, table_name, columns, schema='public'):
+        """
+        Checks if a specific column or combination of columns is unique within a table.
+        
+        It performs a 'GROUP BY' query on the specified columns. If any group has a 
+        count > 1, those values are duplicates, meaning the combination is NOT unique.
+
+        :param table_name: The table to check.
+        :param columns: A list of column names to check for uniqueness together.
+                        Example: ['wh_id', 'pro_id']
+        :param schema: The schema where the table resides.
+        
+        Usage:
+            db_tool.check_uniqueness('warehouse_stock', ['wh_id', 'pro_id'])
+        """
+        print(f"\n[INFO] Checking uniqueness for columns {columns} in '{schema}.{table_name}'...")
+        
+        # 1. Validate Table and Columns
+        if not self.inspector.has_table(table_name, schema=schema):
+            print(f"[ERROR] Table '{table_name}' does not exist in schema '{schema}'.")
+            return
+
+        try:
+            existing_columns = [c['name'] for c in self.inspector.get_columns(table_name, schema=schema)]
+        except Exception as e:
+            print(f"[ERROR] Could not retrieve columns: {e}")
+            return
+
+        # Ensure all requested columns actually exist
+        missing_cols = [col for col in columns if col not in existing_columns]
+        if missing_cols:
+            print(f"[ERROR] The following columns do not exist in the table: {missing_cols}")
+            return
+
+        # 2. Construct the Analysis Query
+        # Logic: Group by the target columns and count occurrences. Filter for count > 1.
+        cols_str = ", ".join(columns)
+        sql = f"""
+            SELECT {cols_str}, COUNT(*) as duplicate_count
+            FROM {schema}.{table_name}
+            GROUP BY {cols_str}
+            HAVING COUNT(*) > 1
+            ORDER BY duplicate_count DESC
+            LIMIT 20
+        """
+
+        try:
+            with self.engine.connect() as conn:
+                df = pd.read_sql(text(sql), conn)
+
+            # 3. Analyze and Report
+            print("-" * 50)
+            if df.empty:
+                print("✅ RESULT: UNIQUE")
+                print(f"The combination of {columns} is strictly unique across the table.")
+                print("This combination is a valid candidate for a Primary Key.")
+            else:
+                print("❌ RESULT: NOT UNIQUE (Duplicates Found)")
+                print(f"The combination of {columns} contains duplicates.")
+                print(f"Showing top {len(df)} duplicate groups:")
+                print(df.to_markdown(index=False))
+                print("-" * 50)
+                
+        except Exception as e:
+            print(f"[ERROR] Query failed: {e}")

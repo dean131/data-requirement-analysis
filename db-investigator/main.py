@@ -85,6 +85,7 @@ try:
     # db_tool.get_table_details('m_product', 'mst')
     # db_tool.trace_value_across_db(data, mode = 'OR', scan_all_schemas = True, show_records = True)
     # db_tool.trace_json_origin(data)
+    db_tool.check_uniqueness('warehouse_stock', ['wh_id'], 'inv')
 
 except Exception as e:
     print(f"[ERROR] Failed to initialize DBTool. Check credentials: {e}")
